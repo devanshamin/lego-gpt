@@ -3,7 +3,7 @@ import inspect
 import torch
 import bitsandbytes as bnb
 
-from .config import OptimizerConfig
+from lego_gpt.train.config import OptimizerConfig
 
 
 def get_optimizer(model, config: OptimizerConfig, device: torch.device):

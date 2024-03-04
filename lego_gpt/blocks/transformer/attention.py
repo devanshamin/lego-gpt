@@ -6,8 +6,8 @@ import torch.nn as nn
 from torch import Tensor
 import torch.nn.functional as F
 
-from .config import GptModelConfig
-from .positional_embedding import apply_rotary_emb
+from lego_gpt.blocks.transformer.config import GptModelConfig
+from lego_gpt.blocks.transformer.positional_embedding import apply_rotary_emb
 from lego_gpt.blocks.cache_utils import KVCache
 
 

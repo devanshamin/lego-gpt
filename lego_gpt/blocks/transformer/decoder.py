@@ -6,11 +6,11 @@ import torch.nn as nn
 from torch import Tensor
 from transformers.modeling_attn_mask_utils import _prepare_4d_causal_attention_mask
 
-from .config import GptModelConfig
-from .normalization import RMSNorm
-from .attention import MultiHeadedAttention
-from .feedforward import FeedForward
-from .positional_embedding import precompute_freqs_cis
+from lego_gpt.blocks.transformer.config import GptModelConfig
+from lego_gpt.blocks.transformer.normalization import RMSNorm
+from lego_gpt.blocks.transformer.attention import MultiHeadedAttention
+from lego_gpt.blocks.transformer.feedforward import FeedForward
+from lego_gpt.blocks.transformer.positional_embedding import precompute_freqs_cis
 from lego_gpt.blocks.cache_utils import KVCache, DynamicKVCache
 
 
