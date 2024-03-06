@@ -32,7 +32,6 @@ class LanguageModeling(BaseLanguageModel):
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
         self.apply(self._init_weights)
-        self._register_load_state_dict_pre_hook(self.load_hook)
     
     def _init_weights(self, module):
 
@@ -40,15 +39,6 @@ class LanguageModeling(BaseLanguageModel):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
             if module.bias is not None:
                 torch.nn.init.zeros_(module.bias)
-    
-    def load_hook(self, state_dict, *args):
-        
-        params = list(state_dict.keys())
-        for name in params:
-            if name == "output.weight":
-                state_dict["lm_head.weight"] = state_dict.pop(name)
-            elif name.startswith("layers") or name.startswith("tok_embeddings"):
-                state_dict["model." + name] = state_dict.pop(name)
 
     def forward(
         self, 
