@@ -38,16 +38,3 @@ class GptModelConfig(BaseLanguageModelConfig):
             hidden_dim = 4 * cls.n_embd
             n_hidden = int(2 * hidden_dim / 3)
             cls.intermediate_size = _find_multiple(n_hidden, 256)
-
-    @classmethod
-    def from_params(cls, file_path: Path) -> "GptModelConfig":
-
-        params = json.loads(file_path.read_text())
-        return cls(
-            vocab_size=params["vocab_size"],
-            n_layer=params["n_layers"],
-            n_head=params["n_heads"],
-            n_embd=params["dim"],
-            n_ctx=2048,
-            layer_norm_epsilon=params["norm_eps"]
-        )
