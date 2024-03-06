@@ -114,7 +114,7 @@ class GptModel(nn.Module):
             self.freqs_cis = precompute_freqs_cis(
                 seq_len=self.config.n_ctx, 
                 n_elem=self.config.n_embd // self.config.n_head
-            )
+            ).to(device=position_ids.device)
         freqs_cis = self.freqs_cis[position_ids]
         
         hidden_states = inputs_embeds
