@@ -5,15 +5,17 @@ from typing import Optional, Dict, Tuple
 import torch
 from torch import Tensor
 import torch.nn.functional as F
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from transformers import PreTrainedTokenizerBase
 
 from lego_gpt.blocks.language_modeling import LanguageModelingOutput, LanguageModeling
 
 
+torch.manual_seed(1234)
+
 class SamplingConfig(BaseModel):
-    temperature: float = 1.0
-    top_k: Optional[int] = None
+    temperature: float = Field(0.7, description="Temperature parameter for randomness in generation.")
+    top_k: Optional[int] = Field(None, description="Top-k parameter for token sampling.")
 
 
 class Sampler(ABC):
@@ -23,20 +25,24 @@ class Sampler(ABC):
         self.model = model
         self.tokenizer = tokenizer
         self.device = next(model.parameters()).device
+        self.max_seq_length = self.model.model.config.n_ctx
 
     def encode(self, text: str) -> Dict[str, Tensor]:
 
         return self.tokenizer(text, return_tensors="pt").to(self.device)
 
-    def decode(self, ids: Tensor) -> str:
+    def decode(self, token_ids: Tensor, **kwargs) -> str:
 
-        return self.tokenizer.decode(ids.squeeze().tolist())
+        token_ids = token_ids.squeeze().tolist()
+        skip_special_tokens = kwargs.get("skip_special_tokens", True)
+        out = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
+        return out
 
     @torch.inference_mode()
-    def forward(self, input_ids) -> Tensor:
+    def forward(self, input_ids: Tensor, **kwargs) -> Tensor:
 
-        output: LanguageModelingOutput = self.model(input_ids=input_ids)
-        return output.logits[:, -1, :]
+        output: LanguageModelingOutput = self.model(input_ids=input_ids, **kwargs)
+        return output.logits[0, -1]
 
     @staticmethod
     def logits_to_probs(
@@ -66,8 +72,18 @@ class Sampler(ABC):
     ) -> Tuple[Tensor, Tensor]:
         
         probs = Sampler.logits_to_probs(logits, sampling_config)
-        next_idx = Sampler.multinomial_sample_one_no_sync(probs)
-        return next_idx, probs
+        next_token_id = Sampler.multinomial_sample_one_no_sync(probs)
+        return next_token_id, probs
+
+    def generate_one_token(
+        self, 
+        input_ids: Tensor, 
+        sampling_config: Optional[SamplingConfig] = None, 
+        **kwargs
+    ) -> Tuple[Tensor, Tensor]:
+
+        logits = self.forward(input_ids, **kwargs)
+        return Sampler.sample(logits, sampling_config)
 
     @abstractmethod 
     def generate(self):
@@ -76,6 +92,7 @@ class Sampler(ABC):
     @staticmethod
     def clear_memory() -> None:
         
-        gc.collect()
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
+        if torch.cuda.is_available():
+            gc.collect()
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
