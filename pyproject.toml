@@ -20,6 +20,7 @@ pydantic = "^2.6.1"
 huggingface-hub = "^0.21.1"
 python-dotenv = "^1.0.1"
 sentencepiece = "^0.2.0"
+safetensors = "^0.4.2"
 
 [build-system]
 requires = ["poetry-core"]
