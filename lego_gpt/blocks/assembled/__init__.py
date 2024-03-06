@@ -1,5 +1,9 @@
-from .llama import LlamaForCausalLM
+from .llama import LlamaConfig, LlamaForCausalLM
+from .tinyllama import TinyLlamaConfig, TinyLlamaForCausalLM
 
 __all__ = [
-    "LlamaForCausalLM"
+    "LlamaConfig",
+    "LlamaForCausalLM",
+    "TinyLlamaConfig",
+    "TinyLlamaForCausalLM",
 ]
