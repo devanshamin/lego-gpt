@@ -20,12 +20,24 @@ class SamplingConfig(BaseModel):
 
 class Sampler(ABC):
 
-    def __init__(self, model: LanguageModeling, tokenizer: PreTrainedTokenizerBase) -> None:
+    def __init__(
+        self, 
+        model: LanguageModeling, 
+        tokenizer: PreTrainedTokenizerBase,
+        max_seq_length: Optional[int] = None
+    ) -> None:
         
         self.model = model
         self.tokenizer = tokenizer
         self.device = next(model.parameters()).device
-        self.max_seq_length = self.model.model.config.n_ctx
+
+        if max_seq_length is None:
+            config = self.model.model.config
+            if isinstance(config, dict):
+                max_seq_length = config.get("n_ctx")
+            assert max_seq_length is not None, \
+                "`max_seq_length` cannot be inferred! Please provide `max_seq_length` value."
+        self.max_seq_length = max_seq_length
 
     def encode(self, text: str) -> Dict[str, Tensor]:
 
