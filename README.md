@@ -4,6 +4,8 @@ A customizable and accessible repository for implementing GPT (e.g., GPT-2) from
 
 ## Why LegoGPT?
 
+> TLDR - My personal [Lit-GPT](https://github.com/Lightning-AI/litgpt/tree/main)
+
 While there are more advanced repositories like xformers and transformers, the question remains: why create LegoGPT? An analogy can shed light on this—consider the coexistence of search engines like Bing, You.com, DuckDuckGo, alongside the dominant Google search. Just as users choose different search engines based on their preferences, LegoGPT offers a similar choice in the realm of repositories, catering to various personal use cases.
 
 ## Requirements
