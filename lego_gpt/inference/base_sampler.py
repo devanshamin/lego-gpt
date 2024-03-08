@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from pydantic import BaseModel, Field
 from transformers import PreTrainedTokenizerBase
 
-from lego_gpt.blocks.language_modeling import LanguageModelingOutput, LanguageModeling
+from lego_gpt.blocks.language_modeling import LanguageModeling
 
 
 torch.manual_seed(1234)
@@ -59,8 +59,8 @@ class Sampler(ABC):
     @torch.inference_mode()
     def forward(self, input_ids: Tensor, **kwargs) -> Tensor:
 
-        output: LanguageModelingOutput = self.model(input_ids=input_ids, **kwargs)
-        return output.logits[0, -1]
+        logits = self.model(input_ids=input_ids, **kwargs)[0]
+        return logits[0, -1]
 
     @staticmethod
     def logits_to_probs(

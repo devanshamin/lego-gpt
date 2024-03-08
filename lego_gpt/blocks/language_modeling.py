@@ -1,23 +1,13 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pydantic import BaseModel
 
 from lego_gpt import blocks
 from lego_gpt.blocks.cache_utils import KVCache
 from lego_gpt.blocks.transformer.normalization import RMSNorm
 from lego_gpt.blocks.base import BaseLanguageModelConfig, BaseLanguageModel
-
-
-class LanguageModelingOutput(BaseModel):
-    logits: torch.Tensor
-    loss: Optional[torch.Tensor] = None
-    past_key_values: Optional[KVCache] = None
-
-    class Config: 
-        arbitrary_types_allowed = True
 
 
 class LanguageModeling(BaseLanguageModel):
@@ -48,7 +38,7 @@ class LanguageModeling(BaseLanguageModel):
         position_ids: Optional[torch.LongTensor] = None,
         past_key_values: Optional[List[torch.FloatTensor]] = None,
         use_cache: Optional[bool] = None,
-    ) -> LanguageModelingOutput:
+    ) -> Tuple[torch.Tensor, torch.Tensor, KVCache]:
         
         hidden_states, next_kv_cache = self.model(
             input_ids=input_ids, 
@@ -66,9 +56,7 @@ class LanguageModeling(BaseLanguageModel):
             )
         else:
             loss = None
-        
-        return LanguageModelingOutput(
-            logits=logits,
-            loss=loss,
-            past_key_values=next_kv_cache
-        )
+
+        # Pydantic class is not used here for wrapping `LanguageModeling`'s output,
+        # since it causes issues with the JIT compiler used by `torch.compile` function        
+        return logits, loss, next_kv_cache
