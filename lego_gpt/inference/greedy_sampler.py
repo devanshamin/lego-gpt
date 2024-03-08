@@ -1,3 +1,4 @@
+import time
 import warnings
 from typing import Optional, List, Tuple
 
@@ -32,7 +33,6 @@ class GreedySampler(Sampler):
         use_cache: bool = True
     ) -> str:
         
-        cls = __class__
         input_ids = self.encode(prompt)["input_ids"]
         prompt_length = input_ids.shape[-1]
         total_length = prompt_length + max_new_tokens
@@ -46,14 +46,23 @@ class GreedySampler(Sampler):
             max_new_tokens = max(0, self.max_seq_length - prompt_length)
             print(f"Adjusted max_new_tokens to {max_new_tokens}")
         
+        start_time = time.perf_counter()
         new_token_ids, _ = self.generate_n_tokens(
             input_ids=input_ids, 
             num_new_tokens=max_new_tokens, 
             sampling_config=sampling_config, 
             use_cache=use_cache
         )
+        time_taken = time.perf_counter() - start_time
+        if self.verbose:
+            tokens_per_sec = max_new_tokens / time_taken
+            print(
+                f"Time for inference: {time_taken:.02f} sec total, {tokens_per_sec:.02f} tokens/sec",
+                f"Bandwidth achieved: {self.model_size * tokens_per_sec / 1e9:.02f} GB/s",
+                sep="\n"
+            )
         new_token_ids = torch.cat(new_token_ids)
         output = self.decode(token_ids=torch.cat((input_ids.squeeze(), new_token_ids)))
-        cls.clear_memory()
+        GreedySampler.clear_memory()
 
         return output
