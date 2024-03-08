@@ -19,7 +19,7 @@ class GreedySampler(Sampler):
 
         new_token_ids, new_probs = [], []
         for _ in range(num_new_tokens):
-            next_token_id, probs = self.generate_one_token(input_ids, **kwargs)
+            next_token_id, probs = self.generate_one_token(input_ids.view(1, -1), **kwargs)
             new_token_ids.append(next_token_id.clone())
             new_probs.append(probs.clone())
             input_ids = next_token_id.view(1, -1)
