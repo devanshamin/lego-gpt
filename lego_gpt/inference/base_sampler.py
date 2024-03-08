@@ -1,4 +1,5 @@
 import gc
+from itertools import chain
 from abc import abstractmethod, ABC
 from typing import Optional, Dict, Tuple
 
@@ -24,17 +25,22 @@ class Sampler(ABC):
         self, 
         model: LanguageModeling, 
         tokenizer: PreTrainedTokenizerBase,
-        max_seq_length: Optional[int] = None
+        max_seq_length: Optional[int] = None,
+        verbose: bool = False
     ) -> None:
         
         self.model = model
         self.tokenizer = tokenizer
+        self.verbose = verbose
         self.device = next(model.parameters()).device
+        self.model_size = sum([p.numel() * p.dtype.itemsize for p in chain(self.model.parameters(), self.model.buffers())])
 
         if max_seq_length is None:
             config = self.model.model.config
             if isinstance(config, dict):
                 max_seq_length = config.get("n_ctx")
+            elif isinstance(config, (tuple, BaseModel)) and hasattr(config, "n_ctx"):
+                max_seq_length = config.n_ctx
             assert max_seq_length is not None, \
                 "`max_seq_length` cannot be inferred! Please provide `max_seq_length` value."
         self.max_seq_length = max_seq_length
