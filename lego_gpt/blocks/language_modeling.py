@@ -58,15 +58,14 @@ class LanguageModeling(BaseLanguageModel):
             use_cache=use_cache,
         )
         hidden_states = self.norm(hidden_states)
-        if labels is None:
-            logits = self.lm_head(hidden_states[:, [-1], :]) # bsz x 1 x vocab_size
-            loss = None
-        else:
-            logits = self.lm_head(hidden_states) # bsz x seq_len x vocab_size
+        logits = self.lm_head(hidden_states) # bsz x seq_len x vocab_size
+        if labels is not None:
             loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)), # bsz * seq_len x vocab_size
                 labels.view(-1), # bsz * seq_len
             )
+        else:
+            loss = None
         
         return LanguageModelingOutput(
             logits=logits,
