@@ -25,6 +25,8 @@ class TinyLlamaConfig(GptModelConfig):
         )
 
 class TinyLlamaForCausalLM(LanguageModeling):
+    """[TinyLlama: An Open-Source Small Language Model]( \
+    https://arxiv.org/pdf/2401.02385v1.pdf)"""
 
     def __init__(self, config: TinyLlamaConfig) -> None:
 
