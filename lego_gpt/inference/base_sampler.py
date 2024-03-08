@@ -60,7 +60,7 @@ class Sampler(ABC):
     def forward(self, input_ids: Tensor, **kwargs) -> Tensor:
 
         logits = self.model(input_ids=input_ids, **kwargs)[0]
-        return logits[0, -1]
+        return logits
 
     @staticmethod
     def logits_to_probs(
@@ -85,11 +85,11 @@ class Sampler(ABC):
 
     @staticmethod
     def sample(
-        logits: Tensor, 
+        logits: Tensor, # Shape: bsz, seq_len, vocab_size
         sampling_config: Optional[SamplingConfig] = None
     ) -> Tuple[Tensor, Tensor]:
-        
-        probs = Sampler.logits_to_probs(logits, sampling_config)
+
+        probs = Sampler.logits_to_probs(logits[0, -1], sampling_config)
         next_token_id = Sampler.multinomial_sample_one_no_sync(probs)
         return next_token_id, probs
 
