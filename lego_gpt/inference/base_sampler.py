@@ -22,13 +22,13 @@ class SamplingConfig(BaseModel):
 class Sampler(ABC):
 
     def __init__(
-        self, 
-        model: LanguageModeling, 
+        self,
+        model: LanguageModeling,
         tokenizer: PreTrainedTokenizerBase,
         max_seq_length: Optional[int] = None,
         verbose: bool = False
     ) -> None:
-        
+
         self.model = model
         self.tokenizer = tokenizer
         self.verbose = verbose
@@ -45,12 +45,14 @@ class Sampler(ABC):
                 "`max_seq_length` cannot be inferred! Please provide `max_seq_length` value."
         self.max_seq_length = max_seq_length
 
-    def encode(self, text: str) -> Dict[str, Tensor]:
+    @abstractmethod
+    def generate(self):
+        pass
 
+    def encode(self, text: str) -> Dict[str, Tensor]:
         return self.tokenizer(text, return_tensors="pt").to(self.device)
 
     def decode(self, token_ids: Tensor, **kwargs) -> str:
-
         token_ids = token_ids.squeeze().tolist()
         skip_special_tokens = kwargs.get("skip_special_tokens", True)
         out = self.tokenizer.decode(token_ids, skip_special_tokens=skip_special_tokens)
@@ -58,22 +60,31 @@ class Sampler(ABC):
 
     @torch.inference_mode()
     def forward(self, input_ids: Tensor, **kwargs) -> Tensor:
-
         logits = self.model(input_ids=input_ids, **kwargs)[0]
         return logits
 
+    def generate_one_token(
+        self,
+        input_ids: Tensor,
+        sampling_config: Optional[SamplingConfig] = None,
+        **kwargs
+    ) -> Tuple[Tensor, Tensor]:
+
+        logits = self.forward(input_ids, **kwargs)
+        return Sampler.sample(logits, sampling_config)
+
     @staticmethod
     def logits_to_probs(
-        logits: Tensor, 
+        logits: Tensor,
         sampling_config: Optional[SamplingConfig] = None
     ) -> Tensor:
-        
+
         cfg = sampling_config or SamplingConfig()
         logits = logits / max(cfg.temperature, 1e-5)
         if cfg.top_k is not None:
             v, _ = torch.topk(logits, k=min(cfg.top_k, logits.size(-1)))
             logits[logits < v[:, [-1]]] = float("-inf")
-        probs = F.softmax(logits, dim=-1)   
+        probs = F.softmax(logits, dim=-1)
         return probs
 
     @staticmethod
@@ -93,23 +104,9 @@ class Sampler(ABC):
         next_token_id = Sampler.multinomial_sample_one_no_sync(probs)
         return next_token_id, probs
 
-    def generate_one_token(
-        self, 
-        input_ids: Tensor, 
-        sampling_config: Optional[SamplingConfig] = None, 
-        **kwargs
-    ) -> Tuple[Tensor, Tensor]:
-
-        logits = self.forward(input_ids, **kwargs)
-        return Sampler.sample(logits, sampling_config)
-
-    @abstractmethod 
-    def generate(self):
-        pass
-
     @staticmethod
     def clear_memory() -> None:
-        
+
         if torch.cuda.is_available():
             gc.collect()
             torch.cuda.empty_cache()

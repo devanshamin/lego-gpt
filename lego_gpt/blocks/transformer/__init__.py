@@ -1,4 +1,4 @@
-from .decoder import GptModel
+from .model import GptModel
 from .config import GptModelConfig
 
 __all__ = [
