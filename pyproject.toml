@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "lego_gpt"
 version = "0.1.0"
-description = "A customizable and accessible repository for implementing GPT (e.g., GPT-2) from scratch, enabling easy experimentation with diverse architectures and components."
+description = "A customizable and accessible repository for implementing GPT (e.g., GPT-2), enabling easy experimentation with diverse architectures and components."
 authors = ["Devansh Amin <devanshamin97@gmail.com>"]
 readme = "README.md"
 repository = "https://github.com/devanshamin/LegoGPT"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.10,<3.13"
 tqdm = "*"
 pandas = "*"
 torch = ">=2.1.2"
@@ -21,6 +21,7 @@ huggingface-hub = "^0.21.1"
 python-dotenv = "^1.0.1"
 sentencepiece = "^0.2.0"
 safetensors = "^0.4.2"
+accelerate = "^0.27.2"
 
 [build-system]
 requires = ["poetry-core"]

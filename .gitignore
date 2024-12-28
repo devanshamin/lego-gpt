@@ -138,3 +138,4 @@ dask-worker-space
 .vscode
 artifacts/
 data/
+.lock
